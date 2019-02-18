@@ -1,7 +1,15 @@
 import java.util.List;
 import java.util.Random;
 
-public class Squirrel extends Animal {
+/**
+ * A simple model of a rabbit.
+ * Rabbits age, move, breed, and die.
+ * 
+ * @author David J. Barnes and Michael Kölling
+ * @version 2016.02.29 (2)
+ */
+public class Rabbit extends Prey
+{
     // Characteristics shared by all rabbits (class variables).
 
     // The age at which a rabbit can start to breed.
@@ -14,7 +22,7 @@ public class Squirrel extends Animal {
     private static final int MAX_LITTER_SIZE = 4;
     // A shared random number generator to control breeding.
     private static final Random rand = Randomizer.getRandom();
-
+    
     // Individual characteristics (instance fields).
 
     // The rabbit's age.
@@ -23,60 +31,40 @@ public class Squirrel extends Animal {
     /**
      * Create a new rabbit. A rabbit may be created with age
      * zero (a new born) or with a random age.
-     *
+     * 
      * @param randomAge If true, the rabbit will have a random age.
      * @param field The field currently occupied.
      * @param location The location within the field.
+     * @param female If true, the animal is female.
      */
-    public Squirrel(boolean randomAge, Field field, Location location)
+    public Rabbit(boolean randomAge, Field field, Location location, boolean female)
     {
-        super(field, location);
+        super(field, location, female);
         age = 0;
         if(randomAge) {
             age = rand.nextInt(MAX_AGE);
         }
     }
 
-    /**
-     * This is what the rabbit does most of the time - it runs
-     * around. Sometimes it will breed or die of old age.
-     * @param newRabbits A list to return newly born rabbits.
-     */
-    public void act(List<Animal> newRabbits)
-    {
-        incrementAge();
-        if(isAlive()) {
-            giveBirth(newRabbits);
-            // Try to move into a free location.
-            Location newLocation = getField().freeAdjacentLocation(getLocation());
-            if(newLocation != null) {
-                setLocation(newLocation);
-            }
-            else {
-                // Overcrowding.
-                setDead();
-            }
-        }
-    }
 
     /**
      * Increase the age.
      * This could result in the rabbit's death.
      */
-    private void incrementAge()
+    protected void incrementAge()
     {
         age++;
         if(age > MAX_AGE) {
             setDead();
         }
     }
-
+    
     /**
      * Check whether or not this rabbit is to give birth at this step.
      * New births will be made into free adjacent locations.
      * @param newRabbits A list to return newly born rabbits.
      */
-    private void giveBirth(List<Animal> newRabbits)
+    protected void giveBirth(List<Animal> newRabbits)
     {
         // New rabbits are born into adjacent locations.
         // Get a list of adjacent free locations.
@@ -85,17 +73,17 @@ public class Squirrel extends Animal {
         int births = breed();
         for(int b = 0; b < births && free.size() > 0; b++) {
             Location loc = free.remove(0);
-            Rabbit young = new Rabbit(false, field, loc);
+            Rabbit young = new Rabbit(false, field, loc, rand.nextBoolean());
             newRabbits.add(young);
         }
     }
-
+        
     /**
      * Generate a number representing the number of births,
      * if it can breed.
      * @return The number of births (may be zero).
      */
-    private int breed()
+    protected int breed()
     {
         int births = 0;
         if(canBreed() && rand.nextDouble() <= BREEDING_PROBABILITY) {
@@ -105,12 +93,11 @@ public class Squirrel extends Animal {
     }
 
     /**
-     * A rabbit can breed if it has reached the breeding age.
+     * A rabbit can breed if it has reached the breeding age and it is female.
      * @return true if the rabbit can breed, false otherwise.
      */
-    private boolean canBreed()
+    protected boolean canBreed()
     {
-        return age >= BREEDING_AGE;
+        return age >= BREEDING_AGE && isFemale();
     }
-
 }

@@ -14,6 +14,8 @@ public abstract class Animal
     private Field field;
     // The animal's position in the field.
     private Location location;
+
+    private boolean female;
     
     /**
      * Create a new animal at location in field.
@@ -21,13 +23,13 @@ public abstract class Animal
      * @param field The field currently occupied.
      * @param location The location within the field.
      */
-    public Animal(Field field, Location location)
+    public Animal(Field field, Location location, boolean female)
     {
         alive = true;
         this.field = field;
+        this.female = female;
         setLocation(location);
     }
-    
     /**
      * Make this animal act - that is: make it do
      * whatever it wants/needs to do.
@@ -65,6 +67,14 @@ public abstract class Animal
     protected Location getLocation()
     {
         return location;
+    }
+
+    /**
+     * Return true if the animal is female.
+     * @return true if the animal is female.
+     */
+    protected boolean isFemale() {
+        return female;
     }
     
     /**
