@@ -3,14 +3,14 @@ import java.util.Random;
 
 public class Zebra extends Prey {
 
-    // Characteristics shared by all rabbits (class variables).
+    // Characteristics shared by all Zebras (class variables).
 
     // The age at which a zebra can start to breed.
-    private static final int BREEDING_AGE = 5;
+    private static final int BREEDING_AGE = 4;
     // The age to which a zebra can live.
     private static final int MAX_AGE = 40;
     // The likelihood of a zebra breeding.
-    private static final double BREEDING_PROBABILITY = 0.09;
+    private static final double BREEDING_PROBABILITY = 0.25;
     // The maximum number of births.
     private static final int MAX_LITTER_SIZE = 3;
     // A shared random number generator to control breeding.
@@ -18,7 +18,7 @@ public class Zebra extends Prey {
 
     // Individual characteristics (instance fields).
 
-    // The rabbit's age.
+    // The Zebra's age.
     private int age;
 
     public Zebra(boolean randomAge, Field field, Location location, boolean female){
@@ -27,7 +27,7 @@ public class Zebra extends Prey {
 
     /**
      * Increase the age.
-     * This could result in the rabbit's death.
+     * This could result in the Zebra's death.
      */
     protected void incrementAge()
     {
@@ -38,21 +38,30 @@ public class Zebra extends Prey {
     }
 
     /**
-     * Check whether or not this rabbit is to give birth at this step.
+     * Check whether or not this Zebra is to give birth at this step.
      * New births will be made into free adjacent locations.
-     * @param newZebras A list to return newly born rabbits.
+     * @param newZebras A list to return newly born Zebras.
      */
     protected void giveBirth(List<Animal> newZebras)
     {
-        // New rabbits are born into adjacent locations.
+        // New Zebras are born into adjacent locations.
         // Get a list of adjacent free locations.
         Field field = getField();
         List<Location> free = field.getFreeAdjacentLocations(getLocation());
-        int births = breed();
-        for(int b = 0; b < births && free.size() > 0; b++) {
-            Location loc = free.remove(0);
-            Zebra young = new Zebra(false, field, loc, rand.nextBoolean());
-            newZebras.add(young);
+        List<Location> adjacentLocations =field.adjacentLocations(getLocation());
+        for (Location location : adjacentLocations){
+            Object object = field.getObjectAt(location);
+            if (object instanceof Zebra) {
+                Zebra adZebra = (Zebra) object;
+                if ((adZebra.isFemale() && !isFemale()) || (!adZebra.isFemale() && isFemale())) {
+                    int births = breed();
+                    for (int b = 0; b < births && free.size() > 0; b++) {
+                        Location loc = free.remove(0);
+                        Zebra young = new Zebra(false, field, loc, rand.nextBoolean());
+                        newZebras.add(young);
+                    }
+                }
+            }
         }
     }
 
@@ -71,8 +80,8 @@ public class Zebra extends Prey {
     }
 
     /**
-     * A rabbit can breed if it has reached the breeding age and it is female.
-     * @return true if the rabbit can breed, false otherwise.
+     * A Zebra can breed if it has reached the breeding age and it is female.
+     * @return true if the Zebra can breed, false otherwise.
      */
     protected boolean canBreed()
     {

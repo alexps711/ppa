@@ -17,11 +17,13 @@ public class Rabbit extends Prey
     // The age to which a rabbit can live.
     private static final int MAX_AGE = 40;
     // The likelihood of a rabbit breeding.
-    private static final double BREEDING_PROBABILITY = 0.12;
+    private static final double BREEDING_PROBABILITY = 0.5;
     // The maximum number of births.
     private static final int MAX_LITTER_SIZE = 4;
     // A shared random number generator to control breeding.
     private static final Random rand = Randomizer.getRandom();
+
+    private boolean isSick;
     
     // Individual characteristics (instance fields).
 
@@ -70,11 +72,21 @@ public class Rabbit extends Prey
         // Get a list of adjacent free locations.
         Field field = getField();
         List<Location> free = field.getFreeAdjacentLocations(getLocation());
-        int births = breed();
-        for(int b = 0; b < births && free.size() > 0; b++) {
-            Location loc = free.remove(0);
-            Rabbit young = new Rabbit(false, field, loc, rand.nextBoolean());
-            newRabbits.add(young);
+        List<Location> adjacentLocations =field.adjacentLocations(getLocation());
+        for (Location location : adjacentLocations){
+            Object object = field.getObjectAt(location);
+            if (object instanceof Rabbit){
+                Rabbit adRabbit = (Rabbit) object;
+                if((adRabbit.isFemale() && !isFemale()) || (!adRabbit.isFemale() && isFemale())){
+                    int births = breed();
+                    for(int b = 0; b < births && free.size() > 0; b++) {
+                        Location loc = free.remove(0);
+                        Rabbit young = new Rabbit(false, field, loc, rand.nextBoolean());
+                        newRabbits.add(young);
+                }
+            }
+        }
+
         }
     }
         

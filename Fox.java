@@ -14,16 +14,16 @@ public class Fox extends Predator
     // Characteristics shared by all foxes (class variables).
     
     // The age at which a fox can start to breed.
-    private static final int BREEDING_AGE = 15;
+    private static final int BREEDING_AGE = 17;
     // The age to which a fox can live.
     private static final int MAX_AGE = 150;
     // The likelihood of a fox breeding.
-    private static final double BREEDING_PROBABILITY = 0.09;
+    private static final double BREEDING_PROBABILITY = 0.1;
     // The maximum number of births.
-    private static final int MAX_LITTER_SIZE = 2;
+    private static final int MAX_LITTER_SIZE = 3;
     // The food value of a single rabbit. In effect, this is the
     // number of steps a fox can go before it has to eat again.
-    private static final int RABBIT_FOOD_VALUE = 10;
+    private static final int RABBIT_FOOD_VALUE = 20;
     // A shared random number generator to control breeding.
     private static final Random rand = Randomizer.getRandom();
     
@@ -102,7 +102,24 @@ public class Fox extends Predator
         }
         return null;
     }
-    
+    protected Location findMate(List<Animal> newFoxes)
+    {
+        Field field = getField();
+        List<Location> adjacent = field.adjacentLocations(getLocation());
+        Iterator<Location> it = adjacent.iterator();
+        while(it.hasNext()) {
+            Location where = it.next();
+            Object animal = field.getObjectAt(where);
+            if(animal instanceof Fox) {
+                Fox adFox = (Fox) animal;
+                if(adFox.isAlive() && (adFox.isFemale() && !isFemale()) || (!adFox.isFemale() && isFemale())) {
+                    giveBirth(newFoxes);
+                    return where;
+                }
+            }
+        }
+        return null;
+    }
     /**
      * Check whether or not this fox is to give birth at this step.
      * New births will be made into free adjacent locations.
@@ -114,12 +131,20 @@ public class Fox extends Predator
         // Get a list of adjacent free locations.
         Field field = getField();
         List<Location> free = field.getFreeAdjacentLocations(getLocation());
-        int births = breed();
-        for(int b = 0; b < births && free.size() > 0; b++) {
-            Location loc = free.remove(0);
-            //Give birth to a new fox with a random gender.
-            Fox young = new Fox(false, field, loc, rand.nextBoolean());
-            newFoxes.add(young);
+        List<Location> adjacentLocations =field.adjacentLocations(getLocation());
+        for (Location location : adjacentLocations){
+            Object object = field.getObjectAt(location);
+            if (object instanceof Fox){
+                Fox adFox = (Fox) object;
+                if((adFox.isFemale() && !isFemale()) || (!adFox.isFemale() && isFemale())){
+                    int births = breed();
+                    for(int b = 0; b < births && free.size() > 0; b++) {
+                        Location loc = free.remove(0);
+                        Fox young = new Fox(false, field, loc, rand.nextBoolean());
+                        newFoxes.add(young);
+                    }
+                }
+            }
         }
     }
         

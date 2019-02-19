@@ -19,13 +19,13 @@ public class Simulator
     // The default depth of the grid.
     private static final int DEFAULT_DEPTH = 80;
     // The probability that a fox will be created in any given grid position.
-    private static final double FOX_CREATION_PROBABILITY = 0.02;
+    private static final double FOX_CREATION_PROBABILITY = 0.03;
     // The probability that a rabbit will be created in any given grid position.
-    private static final double RABBIT_CREATION_PROBABILITY = 0.08;
+    private static final double RABBIT_CREATION_PROBABILITY = 0.1;
     //The probability that a coyote will be created in any given grid position.
-    private static final double COYOTE_CREATION_PROBABILITY = 0.03;
+    private static final double COYOTE_CREATION_PROBABILITY = 0.04;
 
-    private static final double ZEBRA_CREATION_PROBABILITY = 0.04;
+    private static final double ZEBRA_CREATION_PROBABILITY = 0.08;
 
     private static final double LION_CREATION_PROBABILITY = 0.03;
 
@@ -174,7 +174,7 @@ public class Simulator
             }
         }
     }
-    
+
     /**
      * Pause for a given time.
      * @param millisec  The time to pause for, in milliseconds

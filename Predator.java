@@ -12,7 +12,6 @@ public abstract class Predator extends Animal {
      * This is what the predator does most of the time: it hunts for
      * preys. In the process, it might breed, die of hunger,
      * or die of old age.
-     * @param field The field currently occupied.
      * @param newPredators A list to return newly born foxes.
      */
     public void act(List<Animal> newPredators)
@@ -22,7 +21,16 @@ public abstract class Predator extends Animal {
         if(isAlive()) {
             giveBirth(newPredators);
             // Move towards a source of food if found.
-            Location newLocation = findFood();
+            Location newLocation = findMate(newPredators);
+            if(newLocation != null && getField().getFreeAdjacentLocations(newLocation) != null) {
+                // No food found - try to move to a free location.
+               setLocation((newLocation));
+               return;
+            }
+            if(newLocation == null) {
+                // No food found - try to move to a free location.
+                newLocation = findFood();
+            }
             if(newLocation == null) {
                 // No food found - try to move to a free location.
                 newLocation = getField().freeAdjacentLocation(getLocation());
@@ -48,7 +56,7 @@ public abstract class Predator extends Animal {
      */
     abstract protected void incrementHunger();
 
-
+    abstract protected Location findMate(List<Animal> newPredators);
     abstract protected Location findFood();
 
     abstract protected void giveBirth(List<Animal> newPredators);
