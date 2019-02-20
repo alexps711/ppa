@@ -38,6 +38,12 @@ public abstract class Animal
     abstract public void act(List<Animal> newAnimals);
 
     /**
+     * Look for animals of the opposite sex in adjacent locations.
+     * @return true if the animal is of the same breed but opposite sex.
+     */
+    abstract protected boolean findMate();
+
+    /**
      * Check whether the animal is alive or not.
      * @return true if the animal is still alive.
      */

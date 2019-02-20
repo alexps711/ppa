@@ -21,13 +21,16 @@ public class Simulator
     // The probability that a fox will be created in any given grid position.
     private static final double FOX_CREATION_PROBABILITY = 0.03;
     // The probability that a rabbit will be created in any given grid position.
-    private static final double RABBIT_CREATION_PROBABILITY = 0.1;
+    private static final double RABBIT_CREATION_PROBABILITY = 0.08;
     //The probability that a coyote will be created in any given grid position.
-    private static final double COYOTE_CREATION_PROBABILITY = 0.04;
+    private static final double COYOTE_CREATION_PROBABILITY = 0.03;
 
-    private static final double ZEBRA_CREATION_PROBABILITY = 0.08;
+    private static final double ZEBRA_CREATION_PROBABILITY = 0.1;
 
     private static final double LION_CREATION_PROBABILITY = 0.03;
+
+    private static final double PLANT_CREATION_PROBABILITY = 0.12;
+
 
     // List of animals in the field.
     private List<Animal> animals;
@@ -37,6 +40,8 @@ public class Simulator
     private int step;
     // A graphical view of the simulation.
     private SimulatorView view;
+
+    private List<Plant> plants;
     
     /**
      * Construct a simulation field with default size.
@@ -61,16 +66,17 @@ public class Simulator
         }
         
         animals = new ArrayList<>();
+        plants = new ArrayList<>();
         field = new Field(depth, width);
 
         // Create a view of the state of each location in the field.
         view = new SimulatorView(depth, width);
         view.setColor(Rabbit.class, Color.ORANGE);
         view.setColor(Fox.class, Color.BLUE);
-        view.setColor(Coyote.class, Color.GREEN);
+        view.setColor(Plant.class, Color.GREEN);
         view.setColor(Zebra.class, Color.BLACK);
         view.setColor(Lion.class, Color.RED);
-
+        view.setColor(Coyote.class, Color.PINK);
         // Setup a valid starting point.
         reset();
     }
@@ -81,7 +87,7 @@ public class Simulator
      */
     public void runLongSimulation()
     {
-        simulate(4000);
+        simulate(1000);
     }
     
     /**
@@ -107,8 +113,8 @@ public class Simulator
         step++;
 
         // Provide space for newborn animals.
-        List<Animal> newAnimals = new ArrayList<>();        
-        // Let all rabbits act.
+        List<Animal> newAnimals = new ArrayList<>();
+        // Let all animals act.
         for(Iterator<Animal> it = animals.iterator(); it.hasNext(); ) {
             Animal animal = it.next();
             animal.act(newAnimals);
@@ -116,8 +122,9 @@ public class Simulator
                 it.remove();
             }
         }
+
                
-        // Add the newly born foxes and rabbits to the main lists.
+        // Add the newly born animals and plants to the main lists.
         animals.addAll(newAnimals);
 
         view.showStatus(step, field);
@@ -130,19 +137,26 @@ public class Simulator
     {
         step = 0;
         animals.clear();
+        plants.clear();
         populate();
+
         
         // Show the starting state in the view.
         view.showStatus(step, field);
     }
+
+
     
     /**
-     * Randomly populate the field with foxes and rabbits.
+     * Randomly populate the field with animals and plants.
      */
     private void populate()
     {
         Random rand = Randomizer.getRandom();
         field.clear();
+        Location location1 = new Location(rand.nextInt(field.getDepth()), rand.nextInt(field.getWidth()));
+            Plant plant1 = new Plant(field, location1);
+            plants.add(plant1);
         for(int row = 0; row < field.getDepth(); row++) {
             for(int col = 0; col < field.getWidth(); col++) {
                 if(rand.nextDouble() <= FOX_CREATION_PROBABILITY) {
@@ -170,11 +184,16 @@ public class Simulator
                     Lion lion = new Lion(true, field, location, rand.nextBoolean());
                     animals.add(lion);
                 }
-                // else leave the location empty.
+                else if(rand.nextDouble() <= PLANT_CREATION_PROBABILITY){
+                    // else leave the location empty.
+                        Location location = new Location(row, col);
+                        Plant plant = new Plant(field, location);
+                        plants.add(plant);
+                }
             }
         }
     }
-
+    
     /**
      * Pause for a given time.
      * @param millisec  The time to pause for, in milliseconds

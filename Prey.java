@@ -1,7 +1,10 @@
+import java.util.Iterator;
 import java.util.List;
 
 public abstract class Prey extends Animal {
-    
+
+    static final int PLANT_FOOD_VALUE = 40;
+
     /**
      * Create a new prey. A rabbit may be created with age
      * zero (a new born) or with a random age.
@@ -16,33 +19,14 @@ public abstract class Prey extends Animal {
         
     }
 
-    /**
-     * This is what the rabbit does most of the time - it runs 
-     * around. Sometimes it will breed or die of old age.
-     * @param newPreys A list to return newly born rabbits.
-     */
-    public void act(List<Animal> newPreys)
-    {
-        incrementAge();
-        if(isAlive()) {
-            giveBirth(newPreys);
-            // Try to move into a free location.
-            Location newLocation = getField().freeAdjacentLocation(getLocation());
-            if(newLocation != null) {
-                setLocation(newLocation);
-            }
-            else {
-                // Overcrowding.
-                setDead();
-            }
-        }
-    }
 
     /**
      * Increase the age.
      * This could result in the rabbit's death.
      */
     protected abstract void incrementAge();
+
+    abstract protected void incrementHunger();
 
 
     /**
@@ -65,4 +49,5 @@ public abstract class Prey extends Animal {
      * @return true if the rabbit can breed, false otherwise.
      */
     protected abstract boolean canBreed();
+
 }

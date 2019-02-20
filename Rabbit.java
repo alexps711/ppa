@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
@@ -15,20 +17,20 @@ public class Rabbit extends Prey
     // The age at which a rabbit can start to breed.
     private static final int BREEDING_AGE = 5;
     // The age to which a rabbit can live.
-    private static final int MAX_AGE = 40;
+    private static final int MAX_AGE = 100;
     // The likelihood of a rabbit breeding.
-    private static final double BREEDING_PROBABILITY = 0.5;
+    private static final double BREEDING_PROBABILITY = 0.12;
     // The maximum number of births.
     private static final int MAX_LITTER_SIZE = 4;
     // A shared random number generator to control breeding.
     private static final Random rand = Randomizer.getRandom();
-
-    private boolean isSick;
     
     // Individual characteristics (instance fields).
 
     // The rabbit's age.
     private int age;
+
+    private int foodLevel;
 
     /**
      * Create a new rabbit. A rabbit may be created with age
@@ -42,9 +44,13 @@ public class Rabbit extends Prey
     public Rabbit(boolean randomAge, Field field, Location location, boolean female)
     {
         super(field, location, female);
-        age = 0;
         if(randomAge) {
             age = rand.nextInt(MAX_AGE);
+            foodLevel = rand.nextInt(PLANT_FOOD_VALUE);
+        }
+        else {
+            age = 0;
+            foodLevel = PLANT_FOOD_VALUE;
         }
     }
 
@@ -60,7 +66,74 @@ public class Rabbit extends Prey
             setDead();
         }
     }
-    
+
+    /**
+     * Make this fox more hungry. This could result in the fox's death.
+     */
+    protected void incrementHunger()
+    {
+        foodLevel--;
+        if(foodLevel <= 0) {
+            setDead();
+        }
+    }
+
+    protected boolean findMate()
+    {
+        Field field = getField();
+        List<Location> adjacent = field.adjacentLocations(getLocation());
+        Iterator<Location> it = adjacent.iterator();
+        while(it.hasNext()) {
+            Location where = it.next();
+            Object object = field.getObjectAt(where);
+            if(object instanceof Rabbit) {
+                Rabbit adRabbit = (Rabbit) object;
+                if(adRabbit.isAlive() && (adRabbit.isFemale() && !this.isFemale()) || (!adRabbit.isFemale() && this.isFemale())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * This is what the rabbit does most of the time - it runs
+     * around. Sometimes it will breed or die of old age.
+     * @param newRabbits A list to return newly born rabbits.
+     */
+    public void act(List<Animal> newRabbits)
+    {
+        incrementAge();
+        incrementHunger();
+
+        if(isAlive()) {
+            if( findMate() ) {
+                giveBirth(newRabbits);
+            }
+            // Try to move into a free location.
+            Location newLocation = getField().freeAdjacentLocation(getLocation());
+            List<Location> adLocations = getField().adjacentLocations(getLocation());
+            Iterator<Location> it = adLocations.iterator();
+            while(it.hasNext()){
+                Location where = it.next();
+                Object object = getField().getObjectAt(where);
+                if(object instanceof Plant) {
+                    Plant plant = (Plant) object;
+                    plant.setDead();
+                    setLocation(where);
+                }
+            }
+            if(newLocation != null) {
+                setLocation(newLocation);
+            }
+            else {
+                // Overcrowding.
+                setDead();
+            }
+        }
+    }
+
+
     /**
      * Check whether or not this rabbit is to give birth at this step.
      * New births will be made into free adjacent locations.
@@ -72,21 +145,11 @@ public class Rabbit extends Prey
         // Get a list of adjacent free locations.
         Field field = getField();
         List<Location> free = field.getFreeAdjacentLocations(getLocation());
-        List<Location> adjacentLocations =field.adjacentLocations(getLocation());
-        for (Location location : adjacentLocations){
-            Object object = field.getObjectAt(location);
-            if (object instanceof Rabbit){
-                Rabbit adRabbit = (Rabbit) object;
-                if((adRabbit.isFemale() && !isFemale()) || (!adRabbit.isFemale() && isFemale())){
-                    int births = breed();
-                    for(int b = 0; b < births && free.size() > 0; b++) {
-                        Location loc = free.remove(0);
-                        Rabbit young = new Rabbit(false, field, loc, rand.nextBoolean());
-                        newRabbits.add(young);
-                }
-            }
-        }
-
+        int births = breed();
+        for(int b = 0; b < births && free.size() > 0; b++) {
+            Location loc = free.remove(0);
+            Rabbit young = new Rabbit(false, field, loc, rand.nextBoolean());
+            newRabbits.add(young);
         }
     }
         
