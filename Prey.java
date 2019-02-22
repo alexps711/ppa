@@ -5,7 +5,7 @@ public abstract class Prey extends Animal {
 
     // The food value of a single plant. In effect, this is the
     // number of steps a prey can go before it has to eat again.
-    static final int PLANT_FOOD_VALUE = 30;
+    static final int PLANT_FOOD_VALUE = 20;
 
     /**
      * Create a new prey.
@@ -24,6 +24,7 @@ public abstract class Prey extends Animal {
         incrementAge();
         incrementHunger();
         if(isAlive()) {
+
             // Move towards a source of food if found.
             Location newLocation = findMate(newPreys);
             if(newLocation != null && getField().getFreeAdjacentLocations(newLocation) != null) {
@@ -59,6 +60,7 @@ public abstract class Prey extends Animal {
     abstract protected void giveBirth(List<Animal> newPreys);
 
     abstract protected int breed();
+
 
     abstract protected boolean canBreed();
 

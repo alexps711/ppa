@@ -1,4 +1,3 @@
-import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -22,15 +21,15 @@ public class Simulator
     // The default depth of the grid.
     private static final int DEFAULT_DEPTH = 80;
     // The probability that a wolf will be created in any given grid position.
-    private static final double WOLF_CREATION_PROBABILITY = 0.03;
+    private static final double WOLF_CREATION_PROBABILITY = 0.05;
     // The probability that a moose will be created in any given grid position.
     private static final double MOOSE_CREATION_PROBABILITY = 0.08;
     //The probability that a coyote will be created in any given grid position.
-    private static final double COYOTE_CREATION_PROBABILITY = 0.03;
+    private static final double COYOTE_CREATION_PROBABILITY = 0.05;
 
     private static final double ZEBRA_CREATION_PROBABILITY = 0.08;
 
-    private static final double LION_CREATION_PROBABILITY = 0.03;
+    private static final double LION_CREATION_PROBABILITY = 0.05;
 
     private static double PLANT_CREATION_PROBABILITY = 0.13;
 
@@ -190,13 +189,18 @@ public class Simulator
             }
         }
 
-        //Keep generating plants at random free locations if it's raining;
-        if(isRain) {
-            Random rand = Randomizer.getRandom();
-            Location location = new Location(rand.nextInt(DEFAULT_DEPTH), rand.nextInt(DEFAULT_WIDTH));
-            if (field.getObjectAt(location) == null) {
-                Plant plant = new Plant(field, location);
-                plants.add(plant);
+        //Keep generating plants at random free locations;
+        for(int row = 0; row < field.getDepth(); row++) {
+            for (int col = 0; col < field.getWidth(); col++){
+                Random rand = Randomizer.getRandom();
+                double PLANT_PROBABILITY = rand.nextDouble();
+                 Location location = new Location(row, col);
+                if (field.getObjectAt(location) == null) {
+                     if(PLANT_PROBABILITY<0.0005){
+                     Plant plant = new Plant(field, location);
+                    plants.add(plant);
+                    }
+                }
             }
         }
                
@@ -271,7 +275,7 @@ public class Simulator
      * Update the behaviour of the animals and plants according to the weather selected.
      * @param label The label of the button clicked.
      */
-    private void changeWeather(@NotNull String label) {
+    private void changeWeather(String label) {
         // If there is a drought, all plants die.
         if(label.equals("Drought")) {
             isDrought = ! isDrought;
@@ -286,7 +290,7 @@ public class Simulator
             isRain = ! isRain;
             //The drought also stops if there is one.
             isDrought = false;
-            PLANT_CREATION_PROBABILITY = 0.3;
+            plantSpewnProbability = 3;
         }
         else {
             isFoggy = ! isFoggy;

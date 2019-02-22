@@ -18,12 +18,12 @@ public class Wolf extends Predator
     // The age to which a wolf can live.
     private static final int MAX_AGE = 150;
     // The likelihood of a wolf breeding.
-    private static final double BREEDING_PROBABILITY = 0.1;
+    private static final double BREEDING_PROBABILITY = 0.5;
     // The maximum number of births.
     private static final int MAX_LITTER_SIZE = 3;
     // The food value of a single moose. In effect, this is the
     // number of steps a wolf can go before it has to eat again.
-    private static final int RABBIT_FOOD_VALUE = 10;
+    private static final int RABBIT_FOOD_VALUE = 11;
     // A shared random number generator to control breeding.
     private static final Random rand = Randomizer.getRandom();
     

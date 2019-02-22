@@ -14,11 +14,11 @@ public class Moose extends Prey
     // Characteristics shared by all mooses (class variables).
 
     // The age at which a moose can start to breed.
-    private static final int BREEDING_AGE = 5;
+    private static final int BREEDING_AGE = 3;
     // The age to which a moose can live.
     private static final int MAX_AGE = 100;
     // The likelihood of a moose breeding.
-    private static final double BREEDING_PROBABILITY = 0.12;
+    private static final double BREEDING_PROBABILITY = 0.13;
     // The maximum number of births.
     private static final int MAX_LITTER_SIZE = 4;
     // A shared random number generator to control breeding.
@@ -105,26 +105,31 @@ public class Moose extends Prey
     protected Location findMate(List<Animal> newMoose)
     {
         // Check for adjacent moose.
-        Field field = getField();
-        List<Location> adjacent = field.adjacentLocations(getLocation());
-        Iterator<Location> it = adjacent.iterator();
-        while(it.hasNext()) {
-            Location where = it.next();
-            Object object = field.getObjectAt(where);
-            if(object instanceof Moose) {
-                Moose adMoose = (Moose) object;
-                // Check whether the animals are compatible to give birth.
-                if(adMoose.isAlive() && (adMoose.isFemale() && !this.isFemale()) || (!adMoose.isFemale() && this.isFemale())) {
-                    giveBirth(newMoose);
-                    if(adMoose.isSick()) {
-                        changeSickness();
-                        if(MAX_AGE - age < 10){
-                            age = MAX_AGE - age;
+        if(age>BREEDING_AGE) {
+            Field field = getField();
+            List<Location> adjacent = field.adjacentLocations(getLocation());
+            Iterator<Location> it = adjacent.iterator();
+            while (it.hasNext()) {
+                Location where = it.next();
+                Object object = field.getObjectAt(where);
+                if (object instanceof Moose) {
+                    Moose adMoose = (Moose) object;
+                    // Check whether the animals are compatible to give birth.
+                    if (adMoose.isAlive() && (adMoose.isFemale() && !this.isFemale()) || (!adMoose.isFemale() && this.isFemale())) {
+                        giveBirth(newMoose);
+                        if (adMoose.isSick()) {
+                            changeSickness();
+                            if (MAX_AGE - age < 10) {
+                                age = MAX_AGE - age;
+                            }
                         }
+                        return where;
                     }
-                    return where;
                 }
             }
+        }
+         else{
+             findFood();
         }
         return null;
     }

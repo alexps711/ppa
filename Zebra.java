@@ -7,11 +7,11 @@ public class Zebra extends Prey {
     // Characteristics shared by all zebras (class variables).
 
     // The age at which a zebra can start to breed.
-    private static final int BREEDING_AGE = 5;
+    private static final int BREEDING_AGE = 3;
     // The age to which a zebra can live.
     private static final int MAX_AGE = 40;
     // The likelihood of a zebra breeding.
-    private static final double BREEDING_PROBABILITY = 0.09;
+    private static final double BREEDING_PROBABILITY = 0.10;
     // The maximum number of births.
     private static final int MAX_LITTER_SIZE = 4;
     // A shared random number generator to control breeding.
@@ -89,26 +89,31 @@ public class Zebra extends Prey {
     protected Location findMate(List<Animal> newZebras)
     {
         // Check adjacent location for zebras.
-        Field field = getField();
-        List<Location> adjacent = field.adjacentLocations(getLocation());
-        Iterator<Location> it = adjacent.iterator();
-        while(it.hasNext()) {
-            Location where = it.next();
-            Object object = field.getObjectAt(where);
-            if(object instanceof Zebra) {
-                Zebra adZebra = (Zebra) object;
-                // Check whether the animals are compatible to give birth.
-                if(adZebra.isAlive() && (adZebra.isFemale() && !this.isFemale()) || (!adZebra.isFemale() && this.isFemale())) {
-                    if(adZebra.isSick()) {
-                        changeSickness();
-                        if(MAX_AGE - age < 10){
-                            age = MAX_AGE - age;
+        if(age>BREEDING_AGE) {
+            Field field = getField();
+            List<Location> adjacent = field.adjacentLocations(getLocation());
+            Iterator<Location> it = adjacent.iterator();
+            while (it.hasNext()) {
+                Location where = it.next();
+                Object object = field.getObjectAt(where);
+                if (object instanceof Zebra) {
+                    Zebra adZebra = (Zebra) object;
+                    // Check whether the animals are compatible to give birth.
+                    if (adZebra.isAlive() && (adZebra.isFemale() && !this.isFemale()) || (!adZebra.isFemale() && this.isFemale())) {
+                        if (adZebra.isSick()) {
+                            changeSickness();
+                            if (MAX_AGE - age < 10) {
+                                age = MAX_AGE - age;
+                            }
                         }
+                        giveBirth(newZebras);
+                        return where;
                     }
-                    giveBirth(newZebras);
-                    return where;
                 }
             }
+        } else {
+            findFood();
+
         }
         return null;
     }
