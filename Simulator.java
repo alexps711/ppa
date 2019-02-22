@@ -33,6 +33,8 @@ public class Simulator
 
     private static double PLANT_CREATION_PROBABILITY = 0.13;
 
+    private static double baseGrowth = 0.0005;
+
 
     // List of animals in the field.
     private List<Animal> animals;
@@ -196,7 +198,7 @@ public class Simulator
                 double PLANT_PROBABILITY = rand.nextDouble();
                  Location location = new Location(row, col);
                 if (field.getObjectAt(location) == null) {
-                     if(PLANT_PROBABILITY<0.0005){
+                     if(PLANT_PROBABILITY<baseGrowth){
                      Plant plant = new Plant(field, location);
                     plants.add(plant);
                     }
@@ -290,12 +292,11 @@ public class Simulator
             isRain = ! isRain;
             //The drought also stops if there is one.
             isDrought = false;
-            plantSpewnProbability = 3;
+            baseGrowth = 0.0007;
         }
         else {
             isFoggy = ! isFoggy;
-
-
+            day = false;
         }
     }
     
