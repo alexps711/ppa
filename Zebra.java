@@ -4,7 +4,7 @@ import java.util.Random;
 
 public class Zebra extends Prey {
 
-    // Characteristics shared by all rabbits (class variables).
+    // Characteristics shared by all zebras (class variables).
 
     // The age at which a zebra can start to breed.
     private static final int BREEDING_AGE = 5;
@@ -19,14 +19,14 @@ public class Zebra extends Prey {
 
     // Individual characteristics (instance fields).
 
-    // The rabbit's age.
+    // The zebra's age.
     private int age;
 
     private int foodLevel;
 
 
-    public Zebra(boolean randomAge, Field field, Location location, boolean female){
-        super(field, location, female);
+    public Zebra(boolean randomAge, Field field, Location location, boolean female, boolean isSick){
+        super(field, location, female, isSick);
         if(randomAge) {
             age = rand.nextInt(MAX_AGE);
             foodLevel = rand.nextInt(PLANT_FOOD_VALUE);
@@ -39,7 +39,7 @@ public class Zebra extends Prey {
 
     /**
      * Increase the age.
-     * This could result in the rabbit's death.
+     * This could result in the zebra's death.
      */
     protected void incrementAge()
     {
@@ -60,58 +60,35 @@ public class Zebra extends Prey {
         }
     }
 
-    /**
-     * This is what the predator does most of the time: it hunts for
-     * preys. In the process, it might breed, die of hunger,
-     * or die of old age.
-     * @param field The field currently occupied.
-     * @param newPreys A list to return newly born foxes.
-     */
-    /**
-     * This is what the rabbit does most of the time - it runs
-     * around. Sometimes it will breed or die of old age.
-     * @param newRabbits A list to return newly born rabbits.
-     */
-    /**
-     * This is what the rabbit does most of the time - it runs
-     * around. Sometimes it will breed or die of old age.
-     * @param newRabbits A list to return newly born rabbits.
-     */
-    public void act(List<Animal> newRabbits)
-    {
-        incrementAge();
-        incrementHunger();
 
-        if(isAlive()) {
-            if(findMate()) {
-                giveBirth(newRabbits);
-            }
-            // Try to move into a free location.
-            Location newLocation = getField().freeAdjacentLocation(getLocation());
-            List<Location> adLocations = getField().adjacentLocations(getLocation());
-            Iterator<Location> it = adLocations.iterator();
-            while(it.hasNext()){
-                Location where = it.next();
-                Object object = getField().getObjectAt(where);
-                if(object instanceof Plant) {
-                    Plant plant = (Plant) object;
+    /**
+     * Look for moose adjacent to the current location.
+     * Only the first live moose is eaten.
+     * @return Where food was found, or null if it wasn't.
+     */
+    protected Location findFood()
+    {
+        Field field = getField();
+        List<Location> adjacent = field.adjacentLocations(getLocation());
+        Iterator<Location> it = adjacent.iterator();
+        while(it.hasNext()) {
+            Location where = it.next();
+            Object object = field.getObjectAt(where);
+            if(object instanceof Plant) {
+                Plant plant = (Plant) object;
+                if(plant.isAlive()) {
                     plant.setDead();
-                    setLocation(where);
+                    foodLevel = PLANT_FOOD_VALUE;
+                    return where;
                 }
             }
-            if(newLocation != null) {
-                setLocation(newLocation);
-            }
-            else {
-                // Overcrowding.
-                setDead();
-            }
         }
+        return null;
     }
 
-
-    protected boolean findMate()
+    protected Location findMate(List<Animal> newZebras)
     {
+        // Check adjacent location for zebras.
         Field field = getField();
         List<Location> adjacent = field.adjacentLocations(getLocation());
         Iterator<Location> it = adjacent.iterator();
@@ -120,31 +97,39 @@ public class Zebra extends Prey {
             Object object = field.getObjectAt(where);
             if(object instanceof Zebra) {
                 Zebra adZebra = (Zebra) object;
+                // Check whether the animals are compatible to give birth.
                 if(adZebra.isAlive() && (adZebra.isFemale() && !this.isFemale()) || (!adZebra.isFemale() && this.isFemale())) {
-                    return true;
+                    if(adZebra.isSick()) {
+                        changeSickness();
+                        if(MAX_AGE - age < 10){
+                            age = MAX_AGE - age;
+                        }
+                    }
+                    giveBirth(newZebras);
+                    return where;
                 }
             }
         }
-        return false;
+        return null;
     }
 
 
 
     /**
-     * Check whether or not this rabbit is to give birth at this step.
+     * Check whether or not this zebra is to give birth at this step.
      * New births will be made into free adjacent locations.
-     * @param newZebras A list to return newly born rabbits.
+     * @param newZebras A list to return newly born zebras.
      */
     protected void giveBirth(List<Animal> newZebras)
     {
-        // New rabbits are born into adjacent locations.
+        // New zebras are born into adjacent locations.
         // Get a list of adjacent free locations.
         Field field = getField();
         List<Location> free = field.getFreeAdjacentLocations(getLocation());
         int births = breed();
         for(int b = 0; b < births && free.size() > 0; b++) {
             Location loc = free.remove(0);
-            Zebra young = new Zebra(false, field, loc, rand.nextBoolean());
+            Zebra young = new Zebra(false, field, loc, rand.nextBoolean(), this.isSick());
             newZebras.add(young);
         }
     }
@@ -165,8 +150,8 @@ public class Zebra extends Prey {
     }
 
     /**
-     * A rabbit can breed if it has reached the breeding age and it is female.
-     * @return true if the rabbit can breed, false otherwise.
+     * A zebra can breed if it has reached the breeding age and it is female.
+     * @return true if the zebra can breed, false otherwise.
      */
     protected boolean canBreed()
     {

@@ -1,4 +1,9 @@
-import java.util.List;
+/**
+ * A class representing a plant.
+ *
+ * @author Alejandro Perez and Mehdi Mhamedi
+ * @version 2019.02.22 (2)
+ */
 
 public class Plant {
 
@@ -34,7 +39,6 @@ public class Plant {
         return alive;
     }
 
-
     /**
      * Indicate that the plant is no longer alive.
      * It is removed from the field.
@@ -49,11 +53,16 @@ public class Plant {
         }
     }
 
-
+    /**
+     * @return the plant's field.
+     */
     protected Field getField() {
         return field;
     }
 
+    /**
+     * @return the plant's location.
+     */
     protected Location getLocation() {
         return location;
     }

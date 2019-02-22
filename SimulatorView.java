@@ -6,14 +6,15 @@ import java.util.Map;
 
 /**
  * A graphical view of the simulation grid.
- * The view displays a colored rectangle for each location 
+ * The view displays a colored rectangle for each location
  * representing its contents. It uses a default background color.
  * Colors for each type of species can be defined using the
  * setColor method.
- * 
+ *
  * @author David J. Barnes and Michael Kölling
  * @version 2016.02.29
  */
+
 public class SimulatorView extends JFrame
 {
     // Colors used for empty locations.
@@ -24,7 +25,8 @@ public class SimulatorView extends JFrame
 
     private final String STEP_PREFIX = "Step: ";
     private final String POPULATION_PREFIX = "Population: ";
-    private JLabel stepLabel, population, infoLabel;
+    private final String TIME_PREFIX = "Hour: ";
+    private JLabel stepLabel, population, infoLabel, time;
     private FieldView fieldView;
     
     // A map for storing colors for participants in the simulation
@@ -46,21 +48,23 @@ public class SimulatorView extends JFrame
         stepLabel = new JLabel(STEP_PREFIX, JLabel.CENTER);
         infoLabel = new JLabel("  ", JLabel.CENTER);
         population = new JLabel(POPULATION_PREFIX, JLabel.CENTER);
+        time = new JLabel(TIME_PREFIX, JLabel.CENTER);
         
         setLocation(100, 50);
         
         fieldView = new FieldView(height, width);
 
         Container contents = getContentPane();
-        
         JPanel infoPane = new JPanel(new BorderLayout());
             infoPane.add(stepLabel, BorderLayout.WEST);
             infoPane.add(infoLabel, BorderLayout.CENTER);
         contents.add(infoPane, BorderLayout.NORTH);
         contents.add(fieldView, BorderLayout.CENTER);
         contents.add(population, BorderLayout.SOUTH);
+        contents.add(time, BorderLayout.EAST);
         pack();
         setVisible(true);
+
     }
     
     /**
@@ -128,6 +132,7 @@ public class SimulatorView extends JFrame
 
         population.setText(POPULATION_PREFIX + stats.getPopulationDetails(field));
         fieldView.repaint();
+
     }
 
     /**

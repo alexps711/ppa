@@ -1,12 +1,15 @@
+import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
+import java.awt.*;
 import java.util.Random;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.awt.Color;
 
 /**
  * A simple predator-prey simulator, based on a rectangular field
- * containing rabbits and foxes.
+ * containing moose and wolves.
  * 
  * @author David J. Barnes and Michael Kölling
  * @version 2016.02.29 (2)
@@ -18,18 +21,18 @@ public class Simulator
     private static final int DEFAULT_WIDTH = 120;
     // The default depth of the grid.
     private static final int DEFAULT_DEPTH = 80;
-    // The probability that a fox will be created in any given grid position.
-    private static final double FOX_CREATION_PROBABILITY = 0.03;
-    // The probability that a rabbit will be created in any given grid position.
-    private static final double RABBIT_CREATION_PROBABILITY = 0.08;
+    // The probability that a wolf will be created in any given grid position.
+    private static final double WOLF_CREATION_PROBABILITY = 0.03;
+    // The probability that a moose will be created in any given grid position.
+    private static final double MOOSE_CREATION_PROBABILITY = 0.08;
     //The probability that a coyote will be created in any given grid position.
     private static final double COYOTE_CREATION_PROBABILITY = 0.03;
 
-    private static final double ZEBRA_CREATION_PROBABILITY = 0.1;
+    private static final double ZEBRA_CREATION_PROBABILITY = 0.08;
 
     private static final double LION_CREATION_PROBABILITY = 0.03;
 
-    private static final double PLANT_CREATION_PROBABILITY = 0.12;
+    private static double PLANT_CREATION_PROBABILITY = 0.13;
 
 
     // List of animals in the field.
@@ -40,6 +43,16 @@ public class Simulator
     private int step;
     // A graphical view of the simulation.
     private SimulatorView view;
+
+    // Keep track of the state of the weather.
+    private boolean isDrought;
+    private boolean isRain;
+    private boolean isFoggy;
+
+    //The time of day.
+    private int time;
+    //Keep track of day/night cycle.
+    private boolean day;
 
     private List<Plant> plants;
     
@@ -71,14 +84,56 @@ public class Simulator
 
         // Create a view of the state of each location in the field.
         view = new SimulatorView(depth, width);
-        view.setColor(Rabbit.class, Color.ORANGE);
-        view.setColor(Fox.class, Color.BLUE);
+        view.setColor(Moose.class, Color.ORANGE);
+        view.setColor(Wolf.class, Color.BLUE);
         view.setColor(Plant.class, Color.GREEN);
         view.setColor(Zebra.class, Color.BLACK);
         view.setColor(Lion.class, Color.RED);
         view.setColor(Coyote.class, Color.PINK);
+
+        //Create a view for the weather buttons;
+        createButtonsView();
+
+        // At the beginning there is no weather issue.
+        isDrought = false;
+        isRain = false;
+        isFoggy = false;
+
+        time = 0;
+        day = false;
+
         // Setup a valid starting point.
         reset();
+
+    }
+
+    /**
+     * Create a view for the weather buttons.
+     */
+    private void createButtonsView() {
+
+        JFrame buttonsView = new JFrame("Buttons");
+        JPanel panel = new JPanel();
+
+        panel.setLayout(new FlowLayout());
+
+        buttonsView.getContentPane().add(panel);
+
+        JButton rainButton = new JButton("Rain");
+        rainButton.addActionListener(e -> changeWeather(rainButton.getText()));
+
+        JButton fogButton = new JButton("Fog");
+        fogButton.addActionListener(e -> changeWeather(fogButton.getText()));
+
+        JButton droughtButton = new JButton("Drought");
+        droughtButton.addActionListener(e -> changeWeather(droughtButton.getText()));
+
+        panel.add(rainButton);
+        panel.add(fogButton);
+        panel.add(droughtButton);
+
+        buttonsView.pack();
+        buttonsView.setVisible(true);
     }
     
     /**
@@ -87,7 +142,7 @@ public class Simulator
      */
     public void runLongSimulation()
     {
-        simulate(1000);
+        simulate(4000);
     }
     
     /**
@@ -97,32 +152,53 @@ public class Simulator
      */
     public void simulate(int numSteps)
     {
-        for(int step = 1; step <= numSteps && view.isViable(field); step++) {
-            simulateOneStep();
-             delay(60);   // uncomment this to run more slowly
+
+
+            for(int step = 1; step <= numSteps && view.isViable(field); step++) {
+                simulateOneStep();
+                if(time == 24) {
+                    time = 0;
+                }
+                if(22 < time || time < 6) {
+                    day = false;
+                }else{day = true;}
+                delay(60);
         }
     }
     
     /**
      * Run the simulation from its current state for a single step.
      * Iterate over the whole field updating the state of each
-     * fox and rabbit.
+     * wolf and moose.
      */
     public void simulateOneStep()
     {
         step++;
+        time++;
+
 
         // Provide space for newborn animals.
         List<Animal> newAnimals = new ArrayList<>();
         // Let all animals act.
-        for(Iterator<Animal> it = animals.iterator(); it.hasNext(); ) {
-            Animal animal = it.next();
-            animal.act(newAnimals);
-            if(! animal.isAlive()) {
-                it.remove();
+        if( day ) {
+            for (Iterator<Animal> it = animals.iterator(); it.hasNext(); ) {
+                Animal animal = it.next();
+                animal.act(newAnimals);
+                if (!animal.isAlive()) {
+                    it.remove();
+                }
             }
         }
 
+        //Keep generating plants at random free locations if it's raining;
+        if(isRain) {
+            Random rand = Randomizer.getRandom();
+            Location location = new Location(rand.nextInt(DEFAULT_DEPTH), rand.nextInt(DEFAULT_WIDTH));
+            if (field.getObjectAt(location) == null) {
+                Plant plant = new Plant(field, location);
+                plants.add(plant);
+            }
+        }
                
         // Add the newly born animals and plants to the main lists.
         animals.addAll(newAnimals);
@@ -154,34 +230,31 @@ public class Simulator
     {
         Random rand = Randomizer.getRandom();
         field.clear();
-        Location location1 = new Location(rand.nextInt(field.getDepth()), rand.nextInt(field.getWidth()));
-            Plant plant1 = new Plant(field, location1);
-            plants.add(plant1);
         for(int row = 0; row < field.getDepth(); row++) {
             for(int col = 0; col < field.getWidth(); col++) {
-                if(rand.nextDouble() <= FOX_CREATION_PROBABILITY) {
+                if(rand.nextDouble() <= WOLF_CREATION_PROBABILITY) {
                     Location location = new Location(row, col);
-                    Fox fox = new Fox(true, field, location, rand.nextBoolean());
-                    animals.add(fox);
+                    Wolf wolf = new Wolf(true, field, location, rand.nextBoolean(), rand.nextBoolean());
+                    animals.add(wolf);
                 }
-                else if(rand.nextDouble() <= RABBIT_CREATION_PROBABILITY) {
+                else if(rand.nextDouble() <= MOOSE_CREATION_PROBABILITY) {
                     Location location = new Location(row, col);
-                    Rabbit rabbit = new Rabbit(true, field, location, rand.nextBoolean());
-                    animals.add(rabbit);
+                    Moose moose = new Moose(true, field, location, rand.nextBoolean(), rand.nextBoolean());
+                    animals.add(moose);
                 }
                 else if(rand.nextDouble() <= COYOTE_CREATION_PROBABILITY) {
                     Location location = new Location(row, col);
-                    Coyote coyote = new Coyote(true, field, location, rand.nextBoolean());
+                    Coyote coyote = new Coyote(true, field, location, rand.nextBoolean(), rand.nextBoolean());
                     animals.add(coyote);
                 }
                 else if(rand.nextDouble() <= ZEBRA_CREATION_PROBABILITY) {
                     Location location = new Location(row, col);
-                    Zebra zebra = new Zebra(true, field, location, rand.nextBoolean());
+                    Zebra zebra = new Zebra(true, field, location, rand.nextBoolean(), rand.nextBoolean());
                     animals.add(zebra);
                 }
                 else if(rand.nextDouble() <= LION_CREATION_PROBABILITY){
                     Location location = new Location(row, col);
-                    Lion lion = new Lion(true, field, location, rand.nextBoolean());
+                    Lion lion = new Lion(true, field, location, rand.nextBoolean(), rand.nextBoolean());
                     animals.add(lion);
                 }
                 else if(rand.nextDouble() <= PLANT_CREATION_PROBABILITY){
@@ -191,6 +264,34 @@ public class Simulator
                         plants.add(plant);
                 }
             }
+        }
+    }
+
+    /**
+     * Update the behaviour of the animals and plants according to the weather selected.
+     * @param label The label of the button clicked.
+     */
+    private void changeWeather(@NotNull String label) {
+        // If there is a drought, all plants die.
+        if(label.equals("Drought")) {
+            isDrought = ! isDrought;
+            //It also stops raining if there is a drought.
+            isRain = false;
+            for(Plant plant : plants){
+                plant.setDead();
+            }
+        }
+        //If it is raining, plants respawn more often.
+        else if(label.equals("Rain")) {
+            isRain = ! isRain;
+            //The drought also stops if there is one.
+            isDrought = false;
+            PLANT_CREATION_PROBABILITY = 0.3;
+        }
+        else {
+            isFoggy = ! isFoggy;
+
+
         }
     }
     
@@ -206,5 +307,13 @@ public class Simulator
         catch (InterruptedException ie) {
             // wake up
         }
+    }
+
+    /**
+     * Return the time of day.
+     * @return the time of day.
+     */
+    public int getTime() {
+        return time;
     }
 }

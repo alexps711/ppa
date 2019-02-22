@@ -10,9 +10,9 @@ public class Lion extends Predator {
     // The age to which a fox can live.
     private static final int MAX_AGE = 150;
     // The likelihood of a fox breeding.
-    private static final double BREEDING_PROBABILITY = 0.08;
+    private static final double BREEDING_PROBABILITY = 0.09;
     // The maximum number of births.
-    private static final int MAX_LITTER_SIZE = 2;
+    private static final int MAX_LITTER_SIZE = 3;
     // The food value of a single rabbit. In effect, this is the
     // number of steps a lion can go before it has to eat again.
     private static final int ZEBRA_FOOD_VALUE = 11;
@@ -20,23 +20,25 @@ public class Lion extends Predator {
     private static final Random rand = Randomizer.getRandom();
 
 
+
     // Individual characteristics (instance fields).
-    // The fox's age.
+
+    // The lion's age.
     private int age;
-    // The fox's food level, which is increased by eating rabbits.
+    // The lion's food level, which is increased by eating rabbits.
     private int foodLevel;
 
     /**
-     * Create a fox. A fox can be created as a new born (age zero
+     * Create a lion. A lion can be created as a new born (age zero
      * and not hungry) or with a random age and food level.
      *
-     * @param randomAge If true, the fox will have random age and hunger level.
+     * @param randomAge If true, the lion will have random age and hunger level.
      * @param field The field currently occupied.
      * @param location The location within the field.
      */
-    public Lion(boolean randomAge, Field field, Location location, boolean female)
+    public Lion(boolean randomAge, Field field, Location location, boolean female, boolean isSick)
     {
-        super(field, location, female);
+        super(field, location, female, isSick);
         if(randomAge) {
             age = rand.nextInt(MAX_AGE);
             foodLevel = rand.nextInt(ZEBRA_FOOD_VALUE);
@@ -47,8 +49,9 @@ public class Lion extends Predator {
         }
     }
 
-    protected boolean findMate()
+    protected Location findMate(List<Animal> newLions)
     {
+        // Check for adjacent lions.
         Field field = getField();
         List<Location> adjacent = field.adjacentLocations(getLocation());
         Iterator<Location> it = adjacent.iterator();
@@ -57,16 +60,24 @@ public class Lion extends Predator {
             Object object = field.getObjectAt(where);
             if(object instanceof Lion) {
                 Lion adLion = (Lion) object;
+                // Check whether the animals are compatible to give birth.
                 if(adLion.isAlive() && (adLion.isFemale() && !this.isFemale()) || (!adLion.isFemale() && this.isFemale())) {
-                    return true;
+                    giveBirth(newLions);
+                    if (adLion.isSick()) {
+                        changeSickness();
+                        if(MAX_AGE - age > 10){
+                            age = MAX_AGE - age;
+                        }
+                    }
+                    return where;
                 }
             }
         }
-        return false;
+        return null;
     }
 
     /**
-     * Increase the age. This could result in the fox's death.
+     * Increase the age. This could result in the lion's death.
      */
     protected void incrementAge()
     {
@@ -77,7 +88,7 @@ public class Lion extends Predator {
     }
 
     /**
-     * Make this fox more hungry. This could result in the fox's death.
+     * Make this lion more hungry. This could result in the lion's death.
      */
     protected void incrementHunger()
     {
@@ -88,8 +99,8 @@ public class Lion extends Predator {
     }
 
     /**
-     * Look for rabbits adjacent to the current location.
-     * Only the first live rabbit is eaten.
+     * Look for zebras adjacent to the current location.
+     * Only the first live zebra is eaten.
      * @return Where food was found, or null if it wasn't.
      */
     protected Location findFood()
@@ -119,15 +130,15 @@ public class Lion extends Predator {
      */
     protected void giveBirth(List<Animal> newLions)
     {
-        // New foxes are born into adjacent locations.
+        // New lions are born into adjacent locations.
         // Get a list of adjacent free locations.
         Field field = getField();
         List<Location> free = field.getFreeAdjacentLocations(getLocation());
         int births = breed();
         for(int b = 0; b < births && free.size() > 0; b++) {
             Location loc = free.remove(0);
-            //Give birth to a new fox with a random gender.
-            Lion young = new Lion(false, field, loc, rand.nextBoolean());
+            //Give birth to a new lion with a random gender.
+            Lion young = new Lion(false, field, loc, rand.nextBoolean(), this.isSick());
             newLions.add(young);
         }
     }
@@ -147,11 +158,13 @@ public class Lion extends Predator {
     }
 
     /**
-     * A fox can breed if it has reached the breeding age and it is a female.
+     * A lion can breed if it has reached the breeding age and it is a female.
      * @return true if it can breed, false otherwise.
      */
     protected boolean canBreed()
     {
         return age >= BREEDING_AGE && isFemale();
     }
+
+
 }

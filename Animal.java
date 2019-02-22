@@ -3,7 +3,7 @@ import java.util.List;
 /**
  * A class representing shared characteristics of animals.
  * 
- * @author David J. Barnes and Michael Kölling
+ * @author David J. Barnes and Michael Kölling and Alejandro Perez and Mehdi Mhamedi
  * @version 2016.02.29 (2)
  */
 public abstract class Animal
@@ -14,8 +14,10 @@ public abstract class Animal
     private Field field;
     // The animal's position in the field.
     private Location location;
-
+    // The gender of the animal. True if it is female.
     private boolean female;
+
+    private boolean isSick;
     
     /**
      * Create a new animal at location in field.
@@ -23,11 +25,12 @@ public abstract class Animal
      * @param field The field currently occupied.
      * @param location The location within the field.
      */
-    public Animal(Field field, Location location, boolean female)
+    public Animal(Field field, Location location, boolean female, boolean isSick)
     {
         alive = true;
         this.field = field;
         this.female = female;
+        this.isSick = isSick;
         setLocation(location);
     }
     /**
@@ -41,7 +44,7 @@ public abstract class Animal
      * Look for animals of the opposite sex in adjacent locations.
      * @return true if the animal is of the same breed but opposite sex.
      */
-    abstract protected boolean findMate();
+    abstract protected Location findMate(List<Animal> newAnimals);
 
     /**
      * Check whether the animal is alive or not.
@@ -103,5 +106,17 @@ public abstract class Animal
     protected Field getField()
     {
         return field;
+    }
+
+    /**
+     * Return true if the animal is sick.
+     * @return true is the animal is sick.
+     */
+    protected boolean isSick() {
+        return isSick;
+    }
+
+    protected void changeSickness() {
+        isSick = ! isSick;
     }
 }

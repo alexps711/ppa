@@ -1,63 +1,62 @@
-import java.util.List;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Random;
 
 /**
- * A simple model of a fox.
- * Foxes age, move, eat mooses, and die.
- *
- * @author David J. Barnes and Michael Kölling
+ * A simple model of a moose.
+ * Mooses age, move, breed, and die.
+ * 
+ * @author David J. Barnes and Michael Kölling and Mehdi Mhamedi and Alejandro Perez
  * @version 2016.02.29 (2)
  */
-public class Coyote extends Predator
+public class Moose extends Prey
 {
-    // Characteristics shared by all foxes (class variables).
+    // Characteristics shared by all mooses (class variables).
 
-    // The age at which a fox can start to breed.
-    private static final int BREEDING_AGE = 10;
-    // The age to which a fox can live.
-    private static final int MAX_AGE = 150;
-    // The likelihood of a fox breeding.
-    private static final double BREEDING_PROBABILITY = 0.1;
+    // The age at which a moose can start to breed.
+    private static final int BREEDING_AGE = 5;
+    // The age to which a moose can live.
+    private static final int MAX_AGE = 100;
+    // The likelihood of a moose breeding.
+    private static final double BREEDING_PROBABILITY = 0.12;
     // The maximum number of births.
-    private static final int MAX_LITTER_SIZE = 3;
-    // The food value of a single moose. In effect, this is the
-    // number of steps a fox can go before it has to eat again.
-    private static final int RABBIT_FOOD_VALUE = 10;
+    private static final int MAX_LITTER_SIZE = 4;
     // A shared random number generator to control breeding.
     private static final Random rand = Randomizer.getRandom();
-
+    
     // Individual characteristics (instance fields).
-    // The fox's age.
+
+    // The moose's age.
     private int age;
-    // The fox's food level, which is increased by eating mooses.
+    // The moose's food level, which is increased by eating plants.
     private int foodLevel;
 
     /**
-     * Create a fox. A fox can be created as a new born (age zero
-     * and not hungry) or with a random age and food level.
-     *
-     * @param randomAge If true, the fox will have random age and hunger level.
+     * Create a new moose. A moose may be created with age
+     * zero (a new born) or with a random age.
+     * 
+     * @param randomAge If true, the moose will have a random age.
      * @param field The field currently occupied.
      * @param location The location within the field.
+     * @param female If true, the animal is female.
      */
-    public Coyote(boolean randomAge, Field field, Location location, boolean female, boolean isSick)
+    public Moose(boolean randomAge, Field field, Location location, boolean female, boolean isSick)
     {
         super(field, location, female, isSick);
         if(randomAge) {
             age = rand.nextInt(MAX_AGE);
-            foodLevel = rand.nextInt(RABBIT_FOOD_VALUE);
+            foodLevel = rand.nextInt(PLANT_FOOD_VALUE);
         }
         else {
             age = 0;
-            foodLevel = RABBIT_FOOD_VALUE;
+            foodLevel = PLANT_FOOD_VALUE;
         }
     }
 
 
-
     /**
-     * Increase the age. This could result in the coyote's death.
+     * Increase the age.
+     * This could result in the moose's death.
      */
     protected void incrementAge()
     {
@@ -68,7 +67,7 @@ public class Coyote extends Predator
     }
 
     /**
-     * Make this coyote more hungry. This could result in the fox's death.
+     * Make this moose more hungry. This could result in the fox's death.
      */
     protected void incrementHunger()
     {
@@ -90,12 +89,12 @@ public class Coyote extends Predator
         Iterator<Location> it = adjacent.iterator();
         while(it.hasNext()) {
             Location where = it.next();
-            Object animal = field.getObjectAt(where);
-            if(animal instanceof Moose) {
-                Moose moose = (Moose) animal;
-                if(moose.isAlive()) {
-                    moose.setDead();
-                    foodLevel = RABBIT_FOOD_VALUE;
+            Object object = field.getObjectAt(where);
+            if(object instanceof Plant) {
+                Plant plant = (Plant) object;
+                if(plant.isAlive()) {
+                    plant.setDead();
+                    foodLevel = PLANT_FOOD_VALUE;
                     return where;
                 }
             }
@@ -103,28 +102,26 @@ public class Coyote extends Predator
         return null;
     }
 
-    /**
-     * Look for coyotes of the opposite sex in adjacent locations.
-     * @return true if a coyote of the opposite sex is found.
-     */
-    protected Location findMate(List<Animal> newCoyotes)
+    protected Location findMate(List<Animal> newMoose)
     {
+        // Check for adjacent moose.
         Field field = getField();
         List<Location> adjacent = field.adjacentLocations(getLocation());
         Iterator<Location> it = adjacent.iterator();
         while(it.hasNext()) {
             Location where = it.next();
             Object object = field.getObjectAt(where);
-            if(object instanceof Coyote) {
-                Coyote adCoyote = (Coyote) object;
-                if(adCoyote.isAlive() && (adCoyote.isFemale() && !this.isFemale()) || (!adCoyote.isFemale() && this.isFemale())) {
-                    if(adCoyote.isSick()) {
+            if(object instanceof Moose) {
+                Moose adMoose = (Moose) object;
+                // Check whether the animals are compatible to give birth.
+                if(adMoose.isAlive() && (adMoose.isFemale() && !this.isFemale()) || (!adMoose.isFemale() && this.isFemale())) {
+                    giveBirth(newMoose);
+                    if(adMoose.isSick()) {
                         changeSickness();
                         if(MAX_AGE - age < 10){
                             age = MAX_AGE - age;
                         }
                     }
-                    giveBirth(newCoyotes);
                     return where;
                 }
             }
@@ -133,25 +130,24 @@ public class Coyote extends Predator
     }
 
     /**
-     * Check whether or not this fox is to give birth at this step.
+     * Check whether or not this moose is to give birth at this step.
      * New births will be made into free adjacent locations.
-     * @param newCoyotes A list to return newly born foxes.
+     * @param newMoose A list to return newly born mooses.
      */
-    protected void giveBirth(List<Animal> newCoyotes)
+    protected void giveBirth(List<Animal> newMoose)
     {
-        // New foxes are born into adjacent locations.
+        // New mooses are born into adjacent locations.
         // Get a list of adjacent free locations.
         Field field = getField();
         List<Location> free = field.getFreeAdjacentLocations(getLocation());
         int births = breed();
         for(int b = 0; b < births && free.size() > 0; b++) {
             Location loc = free.remove(0);
-            //Give birth to a new fox with a random gender.
-            Coyote young = new Coyote(false, field, loc, rand.nextBoolean(), this.isSick());
-            newCoyotes.add(young);
+            Moose young = new Moose(false, field, loc, rand.nextBoolean(), this.isSick());
+            newMoose.add(young);
         }
     }
-
+        
     /**
      * Generate a number representing the number of births,
      * if it can breed.
@@ -167,8 +163,8 @@ public class Coyote extends Predator
     }
 
     /**
-     * A fox can breed if it has reached the breeding age and it is a female.
-     * @return true if it can breed, false otherwise.
+     * A moose can breed if it has reached the breeding age and it is female.
+     * @return true if the moose can breed, false otherwise.
      */
     protected boolean canBreed()
     {
